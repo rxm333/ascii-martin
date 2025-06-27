@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <!-- <meta id="ascii" name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"> -->
+    <title>STL To ASCII Generator</title>
+    <script defer="defer" src="script.js"></script>
+    <link href="main.css" rel="stylesheet">
+  </head>
+  <body>
+    <div id="ascii"></div>
+    <div id="controls">
+      <div class="control-group">
+        <p>Position de la Caméra</p>
+        <label>Horizontale (X): <input type="range" id="posX" min="-2000" max="2000" value="0" step="10"></label>
+        <label>Verticale (Y): <input type="range" id="posY" min="-2000" max="2000" value="90" step="10"></label>
+        <label>Profondeur/Zoom (Z): <input type="range" id="posZ" min="-2000" max="2000" value="850" step="10"></label>
+      </div>
+      <div class="control-group">
+        <p>Cible de la Caméra (Centre de rotation)</p>
+        <label>Horizontale (X): <input type="range" id="targetX" min="-100" max="100" value="38" step="1"></label>
+        <label>Verticale (Y): <input type="range" id="targetY" min="-100" max="100" value="-51" step="1"></label>
+        <label>Profondeur (Z): <input type="range" id="targetZ" min="-100" max="100" value="0" step="1"></label>
+      </div>
+      <div class="control-group">
+        <p>Objectif de la Caméra</p>
+        <label>Angle de vue (FOV): <input type="range" id="fov" min="10" max="120" value="52" step="1"></label>
+      </div>
+       <div class="control-group">
+        <p>Interactions Souris</p>
+        <label><input type="checkbox" id="enableZoom"> Activer le zoom (molette)</label>
+        <label><input type="checkbox" id="enableDamping"> Activer l'inertie (fluidité)</label>
+        <label><input type="checkbox" id="enablePan"> Activer le panoramique (clic droit)</label>
+        <label>Force de l'inertie: <input type="range" id="dampingFactor" min="0.01" max="0.2" value="0.01" step="0.01"></label>
+      </div>
+      <div class="control-group">
+        <p>Rotation Automatique</p>
+        <label><input type="checkbox" id="autoRotate"> Activer la rotation auto.</label>
+        <label>Vitesse de rotation: <input type="range" id="autoRotateSpeed" min="-10" max="10" value="0" step="0.5"></label>
+      </div>
+      <div class="control-group">
+        <p>Suivi du Curseur</p>
+        <label><input type="checkbox" id="enableCursorFollow"> Activer le suivi</label>
+      </div>
+      <div class="control-group">
+        <p>Valeurs Actuelles</p>
+        <pre id="values-display"></pre>
+      </div>
+    </div>
+  </body>
+</html>
+
+<style>
+body{
+  background-color: blue;
+  margin: 0;
+  font-family: sans-serif;
+}
+.ascii-table{
+  color: white
+}
+
+.ascii-container{
+  background-color: blue !important;
+}
+
+table{
+  font-size: 12px !important;
+  line-height: 12px !important;
+  white-space: pre;
+  font-weight: 600;
+}
+
+#controls {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 15px;
+  border-radius: 10px;
+  z-index: 100;
+  max-height: 95vh;
+  overflow-y: auto;
+}
+#values-display {
+  background: rgba(0,0,0,0.5);
+  padding: 10px;
+  border-radius: 5px;
+  font-family: monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.control-group {
+  margin-bottom: 10px;
+}
+p {
+  margin-top: 0;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+label {
+  display: block;
+  margin-bottom: 5px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    let camera;
+    let controls;
+    window.enableCursorFollow = false; // Drapeau global pour le suivi
+
+    const findThreeJSObjects = () => {
+      let foundCamera = window.threeJsCamera || null;
+      let foundControls = window.threeJsControls || null;
+      return { camera: foundCamera, controls: foundControls };
+    };
+
+    const initInterval = setInterval(() => {
+      const found = findThreeJSObjects();
+      
+      if (found.camera && found.controls) {
+        clearInterval(initInterval);
+        camera = found.camera;
+        controls = found.controls;
+        console.log('Camera and Controls found!', { camera, controls });
+        
+        // Appliquer les valeurs par défaut du HTML aux objets 3D au démarrage
+        camera.position.x = parseFloat(document.getElementById('posX').value);
+        camera.position.y = parseFloat(document.getElementById('posY').value);
+        camera.position.z = parseFloat(document.getElementById('posZ').value);
+        controls.target.x = parseFloat(document.getElementById('targetX').value);
+        controls.target.y = parseFloat(document.getElementById('targetY').value);
+        controls.target.z = parseFloat(document.getElementById('targetZ').value);
+        
+        camera.fov = parseFloat(document.getElementById('fov').value);
+        camera.updateProjectionMatrix();
+
+        controls.enableZoom = document.getElementById('enableZoom').checked;
+        controls.enableDamping = document.getElementById('enableDamping').checked;
+        controls.enablePan = document.getElementById('enablePan').checked;
+        controls.dampingFactor = parseFloat(document.getElementById('dampingFactor').value);
+        
+        controls.autoRotate = document.getElementById('autoRotate').checked;
+        controls.autoRotateSpeed = parseFloat(document.getElementById('autoRotateSpeed').value);
+        window.enableCursorFollow = document.getElementById('enableCursorFollow').checked;
+
+        controls.update(); // Forcer la mise à jour des contrôles avec les nouvelles valeurs
+
+        setupControls(camera, controls);
+        updateValuesDisplay();
+      }
+    }, 500);
+
+    function updateValuesDisplay() {
+      if (!camera || !controls) return;
+      const values = {
+        cameraPosition: {
+          x: parseFloat(camera.position.x.toFixed(2)),
+          y: parseFloat(camera.position.y.toFixed(2)),
+          z: parseFloat(camera.position.z.toFixed(2)),
+        },
+        cameraTarget: {
+          x: parseFloat(controls.target.x.toFixed(2)),
+          y: parseFloat(controls.target.y.toFixed(2)),
+          z: parseFloat(controls.target.z.toFixed(2)),
+        },
+        cameraLens: {
+          fov: parseFloat(camera.fov.toFixed(2)),
+        },
+        mouseInteraction: {
+          enableZoom: controls.enableZoom,
+          enableDamping: controls.enableDamping,
+          enablePan: controls.enablePan,
+          dampingFactor: parseFloat(controls.dampingFactor.toFixed(2)),
+        },
+        autoRotation: {
+          autoRotate: controls.autoRotate,
+          autoRotateSpeed: parseFloat(controls.autoRotateSpeed.toFixed(2)),
+        },
+        cursorFollow: {
+          enable: window.enableCursorFollow,
+        }
+      };
+      document.getElementById('values-display').textContent = JSON.stringify(values, null, 2);
+    }
+
+    function setupControls(cam, ctrl) {
+      console.log('Setting up controls...');
+
+      const onUpdate = () => {
+        if (ctrl && typeof ctrl.update === 'function') {
+          ctrl.update();
+        }
+        updateValuesDisplay();
+      };
+      
+      // Position
+      document.getElementById('posX').addEventListener('input', e => { cam.position.x = parseFloat(e.target.value); onUpdate(); });
+      document.getElementById('posY').addEventListener('input', e => { cam.position.y = parseFloat(e.target.value); onUpdate(); });
+      document.getElementById('posZ').addEventListener('input', e => { cam.position.z = parseFloat(e.target.value); onUpdate(); });
+
+      // Cible
+      document.getElementById('targetX').addEventListener('input', e => { ctrl.target.x = parseFloat(e.target.value); onUpdate(); });
+      document.getElementById('targetY').addEventListener('input', e => { ctrl.target.y = parseFloat(e.target.value); onUpdate(); });
+      document.getElementById('targetZ').addEventListener('input', e => { ctrl.target.z = parseFloat(e.target.value); onUpdate(); });
+      
+      // Objectif
+      document.getElementById('fov').addEventListener('input', e => {
+        cam.fov = parseFloat(e.target.value);
+        cam.updateProjectionMatrix();
+        updateValuesDisplay();
+      });
+
+      // Interactions
+      document.getElementById('enableZoom').addEventListener('change', e => { ctrl.enableZoom = e.target.checked; updateValuesDisplay(); });
+      document.getElementById('enableDamping').addEventListener('change', e => { ctrl.enableDamping = e.target.checked; updateValuesDisplay(); });
+      document.getElementById('enablePan').addEventListener('change', e => { ctrl.enablePan = e.target.checked; updateValuesDisplay(); });
+      document.getElementById('dampingFactor').addEventListener('input', e => { ctrl.dampingFactor = parseFloat(e.target.value); updateValuesDisplay(); });
+
+      // Rotation auto
+      document.getElementById('autoRotate').addEventListener('change', e => { ctrl.autoRotate = e.target.checked; updateValuesDisplay(); });
+      document.getElementById('autoRotateSpeed').addEventListener('input', e => { ctrl.autoRotateSpeed = parseFloat(e.target.value); updateValuesDisplay(); });
+      
+      // Suivi curseur
+      document.getElementById('enableCursorFollow').addEventListener('change', e => { window.enableCursorFollow = e.target.checked; updateValuesDisplay(); });
+
+      console.log('All controls are live!');
+    }
+});
+</script>
