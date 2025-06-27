@@ -18764,4 +18764,4 @@
 			e.textContent = document.getElementsByTagName("td")[0].textContent, document.body.appendChild(e), e.select(), document.execCommand("copy"), document.body.removeChild(e), window.alert("ASCII copied to clipboard")
 		}), !1)
 	})()
-})();
+})(); ///end
