@@ -18739,9 +18739,15 @@
 
 			function e() {
 				if (1 == Zo) {
-					const t = jo.getElapsedTime();
-					 ea.rotation.y = mouseX + 0.9 ; /// rotation manuelle mouse
-					 //ea.rotation.y = t / 3;  /// defilement automatique
+					const delta = jo.getDelta(); // On récupère le temps écoulé depuis la dernière image
+
+// On ne fait la rotation automatique que si l'utilisateur n'est pas en train de faire glisser le modèle
+if (!window.isModelDragging) {
+    const autoRotateSpeed = 1/3; // Vitesse en radians par seconde
+    ea.rotation.y += autoRotateSpeed * delta; // On ajoute un petit angle (rotation incrémentale)
+}
+					// ea.rotation.y = mouseX + 0.9 ; /// rotation manuelle mouse
+					//ea.rotation.y = t / 3;  /// defilement automatique
 					// console.log('Model rotation:', { 
 					// 	z: ea.rotation.z.toFixed(3), 
 					// 	y: ea.rotation.y.toFixed(3) 
