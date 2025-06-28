@@ -18692,7 +18692,7 @@
 				ca.setSize(window.innerWidth, 
 					window.innerHeight)
 		}
-		da(), document.body.appendChild(ca.domElement), document.getElementById("ascii").style.whiteSpace = "prewrap", ra.load("untitled.stl", (function(e) {
+		da(), document.body.appendChild(ca.domElement), document.getElementById("ascii").style.whiteSpace = "prewrap", ra.load("https://cdn.jsdelivr.net/gh/rxm333/STL-ASCII/models/untitled.stl", (function(e) {
 			ea.material = ia, ea.geometry = e;
 			var t = new Zt(e, ia);
 			ea.position.copy = t.position, 
