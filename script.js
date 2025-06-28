@@ -18670,7 +18670,7 @@
 				width: window.innerWidth,
 				height: window.innerHeight
 			},
-			oa = new iA(45, sa.width / sa.height, .1, 2e3),
+			oa = new iA(52, sa.width / sa.height, .1, 2e3),
 			aa = new Tr;
 		let ca, la = " .:-+*=%@#";
 		let ha = "white",
@@ -18685,26 +18685,48 @@
 		}
 
 		function pa() {
-			oa.aspect = window.innerWidth / window.innerHeight, oa.updateProjectionMatrix(), aa.setSize(window.innerWidth, window.innerHeight), ca.setSize(window.innerWidth, window.innerHeight)
+			oa.aspect = window.innerWidth / window.innerHeight,
+			 oa.updateProjectionMatrix(), 
+			 aa.setSize(window.innerWidth, 
+				window.innerHeight), 
+				ca.setSize(window.innerWidth, 
+					window.innerHeight)
 		}
-		da(), document.body.appendChild(ca.domElement), document.getElementById("ascii").style.whiteSpace = "prewrap", ra.load("https://cdn.jsdelivr.net/gh/rxm333/STL-ASCII/models/martin.stl", (function(e) {
+		da(), document.body.appendChild(ca.domElement), document.getElementById("ascii").style.whiteSpace = "prewrap", ra.load("untitled.stl", (function(e) {
 			ea.material = ia, ea.geometry = e;
 			var t = new Zt(e, ia);
 			ea.position.copy = t.position, 
 			e.computeVertexNormals(), 
 			ea.geometry.center(),
-			ea.rotation.x = -90 * Math.PI / 180, 
+			// ea.rotation.x = -90 * Math.PI / 180, 
+			ea.rotation.x = 0 * Math.PI / 180, 
 			ea.geometry.computeBoundingBox();
 			var A = ea.geometry.boundingBox;
 
 			function n() {
 				ca.render(ta, oa)
 			}
-			ea.position.y = (A.max.z - A.min.z) / 150, 
-			oa.position.x = 3 * A.max.x, oa.position.y = A.max.y, oa.position.z = 2 * A.max.z, 
+			 oa.position.set(880, 160, 140), // Position de caméra par défaut
+			// ea.position.y = (A.max.z - A.min.z) / 150, 
+			 //oa.position.x = 3 * A.max.x, oa.position.y = A.max.y, oa.position.z = 2 * A.max.z, 
+			
 			ta.add(ea), $o = new zo(oa, ca.domElement),
+			window.threeJsModel = ea, // On expose le modèle 3D pour le contrôler
 			window.threeJsControls = $o; // Log: On expose la variable des contrôles '$o' pour la synchroniser avec les sliders.
-			$o.enableZoom = false,
+			
+			    // --- Paramètres par défaut des contrôles ---
+				
+				// $o.target.set(84, -75, 0);       // Cible de caméra par défaut
+				$o.target.set(83, -113, -177);  
+				$o.enablePan = false;            // Désactive le clic droit pour le panoramique
+				$o.enableZoom = false;           // Désactive le zoom à la molette (sera contrôlé par la UI)
+				$o.enableDamping = false;        // Désactive l'inertie
+				$o.dampingFactor = 0.1;         // Force de l'inertie
+				$o.autoRotate = false;   
+				$o.enableRotate = false;        // Pas de rotation auto
+				$o.autoRotateSpeed = 0;          // Vitesse de rotation
+				$o.update(); // Force la mise à jour initiale des contrôles pour appliquer les paramètres.
+
 
 			$o.domElement.removeEventListener("wheel", k);
 
@@ -18718,12 +18740,12 @@
 			function e() {
 				if (1 == Zo) {
 					const t = jo.getElapsedTime();
-					// ea.rotation.z = mouseX; /// rotation manuelle mouse
-					 ea.rotation.z = -t / 3;  /// defilement automatique
-					console.log('Model rotation:', { 
-						z: ea.rotation.z.toFixed(3), 
-						y: ea.rotation.y.toFixed(3) 
-					}); 
+					 ea.rotation.y = mouseX + 0.9 ; /// rotation manuelle mouse
+					 //ea.rotation.y = t / 3;  /// defilement automatique
+					// console.log('Model rotation:', { 
+					// 	z: ea.rotation.z.toFixed(3), 
+					// 	y: ea.rotation.y.toFixed(3) 
+					// }); 
 					n();
 					window.requestAnimationFrame(e)
 				} else {
@@ -18738,7 +18760,7 @@
 						0 == qo && (qo = !0);
 						const e = ra.parse(this.result);
 						t = e, ea.geometry = e, ea.geometry.center(), 
-						ea.rotation.x = -90 * Math.PI / 180,
+						//ea.rotation.x = -90 * Math.PI / 180,
 						ea.geometry.computeBoundingBox();
 						var A = ea.geometry.boundingBox;
 						ea.position.y = (A.max.z - A.min.z) / 6, ta.add(ea)
@@ -18750,7 +18772,7 @@
 				var t = document.createElement("a");
 				document.body.appendChild(t), t.download = "ASCII.jpg", t.href = e.toDataURL("image/jpg"), console.log(t.href), t.click()
 			}))
-		})), document.getElementById("updateASCII").addEventListener("click", (function() {
+		})), document.getElementById("ascii").addEventListener("click", (function() {
 			document.body.removeChild(ca.domElement), la = " ." + document.getElementById("newASCII").value, da(), pa(), document.body.appendChild(ca.domElement), $o = new zo(oa, ca.domElement)
 		})), document.getElementById("resetASCII").addEventListener("click", (function() {
 			document.body.removeChild(ca.domElement), la = " .:-+*=%@#", da(), pa(), document.body.appendChild(ca.domElement), $o = new zo(oa, ca.domElement)
@@ -18764,4 +18786,4 @@
 			e.textContent = document.getElementsByTagName("td")[0].textContent, document.body.appendChild(e), e.select(), document.execCommand("copy"), document.body.removeChild(e), window.alert("ASCII copied to clipboard")
 		}), !1)
 	})()
-})(); ///end
+})();
